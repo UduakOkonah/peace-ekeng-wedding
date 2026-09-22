@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  CalendarDays,
   Clock3,
   Heart,
   MapPin,
