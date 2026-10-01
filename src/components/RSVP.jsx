@@ -2,6 +2,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Heart, Send } from "lucide-react";
 
+// =========================================================
+// GOOGLE APPS SCRIPT WEB APP URL
+// Replace this with your deployed Google Apps Script URL.
+// =========================================================
+
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbzkrAuzSCGrGExSqDfsasRLqRdbVQPxeUr4m6jUupzZL2zvhoE8F_EWbTs-i5UsMe98ng/exec";
+
 export default function RSVP() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -9,33 +17,45 @@ export default function RSVP() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    setIsSubmitting(true);
-
     const form = event.currentTarget;
     const formData = new FormData(form);
 
+    setIsSubmitting(true);
+
     try {
-      const response = await fetch(
-        "https://formsubmit.co/ajax/Peaceokonah2@gmail.com",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-          },
-          body: formData,
-        }
-      );
+      // Convert FormData into a normal object.
+      const data = {
+        name: formData.get("name")?.toString().trim() || "",
+        email: formData.get("email")?.toString().trim() || "",
+        attendance:
+          formData.get("attendance")?.toString().trim() || "",
+        guests: formData.get("guests")?.toString().trim() || "",
+        message: formData.get("message")?.toString().trim() || "",
+      };
+
+      // Send RSVP to Google Apps Script.
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(data),
+      });
 
       const result = await response.json();
 
-      if (result.success === true || response.ok) {
-        setSubmitted(true);
-        form.reset();
-      } else {
-        throw new Error("Submission failed");
+      if (!result.success) {
+        throw new Error(result.message || "RSVP submission failed.");
       }
+
+      // Show success message.
+      setSubmitted(true);
+
+      // Clear the form.
+      form.reset();
     } catch (error) {
       console.error("RSVP submission error:", error);
+
       alert(
         "We could not send your RSVP right now. Please try again or contact the family directly."
       );
@@ -46,7 +66,6 @@ export default function RSVP() {
 
   return (
     <div className="mx-auto max-w-3xl">
-
       <AnimatePresence mode="wait">
 
         {/* =====================================================
@@ -117,35 +136,8 @@ export default function RSVP() {
             className="border border-[#0F5132]/10 bg-[#E8F0EB]/50 p-6 sm:p-10"
           >
 
-            {/* FormSubmit settings */}
-            <input
-              type="hidden"
-              name="_subject"
-              value="New RSVP — Peace & Ekeng Wedding"
-            />
+            {/* Full Name */}
 
-            <input
-              type="hidden"
-              name="_template"
-              value="table"
-            />
-
-            <input
-              type="hidden"
-              name="_captcha"
-              value="true"
-            />
-
-            {/* Honeypot spam protection */}
-            <input
-              type="text"
-              name="_honey"
-              tabIndex="-1"
-              autoComplete="off"
-              className="hidden"
-            />
-
-            {/* Full name */}
             <div>
               <label
                 htmlFor="name"
@@ -165,12 +157,14 @@ export default function RSVP() {
             </div>
 
             {/* Email */}
+
             <div className="mt-8">
               <label
                 htmlFor="email"
                 className="text-[10px] uppercase tracking-[0.3em] text-[#0F5132]/50"
               >
                 Email Address
+
                 <span className="ml-2 normal-case tracking-normal text-[#0F5132]/30">
                   optional
                 </span>
@@ -186,6 +180,7 @@ export default function RSVP() {
             </div>
 
             {/* Attendance */}
+
             <div className="mt-10">
               <p className="text-[10px] uppercase tracking-[0.3em] text-[#0F5132]/50">
                 Will you be joining us?
@@ -228,7 +223,8 @@ export default function RSVP() {
               </div>
             </div>
 
-            {/* Number of guests */}
+            {/* Number of Guests */}
+
             <div className="mt-8">
               <label
                 htmlFor="guests"
@@ -258,12 +254,14 @@ export default function RSVP() {
             </div>
 
             {/* Message */}
+
             <div className="mt-8">
               <label
                 htmlFor="message"
                 className="text-[10px] uppercase tracking-[0.3em] text-[#0F5132]/50"
               >
                 A Message
+
                 <span className="ml-2 normal-case tracking-normal text-[#0F5132]/30">
                   optional
                 </span>
@@ -279,6 +277,7 @@ export default function RSVP() {
             </div>
 
             {/* Submit */}
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -287,6 +286,7 @@ export default function RSVP() {
               {isSubmitting ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border border-[#FFFDF8]/30 border-t-[#FFFDF8]" />
+
                   Sending RSVP
                 </>
               ) : (
@@ -303,7 +303,7 @@ export default function RSVP() {
             </button>
 
             <p className="mt-5 text-center text-[9px] leading-5 text-[#0F5132]/35">
-              Your RSVP will be sent securely to the wedding family.
+              Your RSVP will be added securely to the wedding guest list.
             </p>
 
           </motion.form>
